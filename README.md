@@ -2,6 +2,8 @@
 
 AI-powered git commit message generator that works completely offline. Analyzes your staged changes and generates meaningful commit messages following the format: `type(action): description`.
 
+📚 **[Complete Documentation →](https://neadigitra.github.io/Git-Smart/)**
+
 ## Features
 
 - 🤖 **Intelligent Analysis**: Analyzes code changes, file types, and patterns
@@ -70,7 +72,7 @@ Options:
   -i, --interactive    Interactive mode with multiple suggestions
   -v, --verbose        Show detailed analysis information
   -d, --dry-run        Show suggested message without committing
-  -h, --help          Show help message
+  -h, --help           Show help message
 ```
 
 Or if installed globally:

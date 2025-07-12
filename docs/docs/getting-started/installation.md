@@ -1,3 +1,9 @@
+---
+sidebar_position: 1
+title: Installation
+description: Install Git-Smart globally via npm or use directly with npx for one-time usage
+---
+
 # Installation
 
 Git-Smart can be installed globally via npm or used directly with npx for one-time usage.
@@ -84,6 +90,6 @@ npm uninstall -g @neabyte/git-smart
 
 ## Next Steps
 
-- [Basic Usage](basic-usage.md) - Learn the fundamental commands
-- [Your First Commit](first-commit.md) - Generate your first smart commit message
-- [CLI Reference](../user-guide/cli-reference.md) - Complete command reference
+- [Basic Usage](basic-usage) - Learn the fundamental commands
+- [Your First Commit](first-commit) - Generate your first smart commit message
+- [CLI Reference](../user-guide/cli-reference) - Complete command reference

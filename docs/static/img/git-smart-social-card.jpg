@@ -1,0 +1,65 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f766e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#158f77;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#158f77;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f766e;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="textShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  
+  <!-- Logo -->
+  <g transform="translate(120, 180)">
+    <rect x="0" y="0" width="120" height="120" rx="20" fill="url(#logoGrad)"/>
+    
+    <!-- Three ascending bars in logo -->
+    <g transform="translate(60, 60)">
+      <rect x="-24" y="8" width="10" height="16" rx="5" fill="white"/>
+      <rect x="-5" y="-4" width="10" height="28" rx="5" fill="white"/>
+      <rect x="14" y="-16" width="10" height="40" rx="5" fill="white"/>
+    </g>
+  </g>
+  
+  <!-- Main content -->
+  <g transform="translate(300, 200)">
+    <!-- Title -->
+    <text x="0" y="50" font-family="'Inter', 'SF Pro Display', sans-serif" 
+          font-size="72" font-weight="800" fill="white" filter="url(#textShadow)">Git-Smart</text>
+    
+    <!-- Subtitle -->
+    <text x="0" y="100" font-family="'Inter', sans-serif" 
+          font-size="28" font-weight="500" fill="rgba(255,255,255,0.9)">
+          AI-powered commit message generator
+    </text>
+    
+    <!-- Features -->
+    <g transform="translate(0, 150)">
+      <text x="0" y="0" font-family="'Inter', sans-serif" font-size="20" fill="rgba(255,255,255,0.8)">
+        ⚡ 18 commit types • 70+ actions • 100% offline
+      </text>
+    </g>
+    
+    <!-- Command example -->
+    <g transform="translate(0, 190)">
+      <rect x="0" y="0" width="500" height="60" rx="8" fill="rgba(0,0,0,0.2)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="20" y="25" font-family="'JetBrains Mono', monospace" font-size="16" fill="#10b981">$ git-smart</text>
+      <text x="20" y="45" font-family="'JetBrains Mono', monospace" font-size="14" fill="#e5e7eb">feat(auth): implement JWT validation</text>
+    </g>
+  </g>
+  
+  <!-- URL -->
+  <text x="1050" y="590" font-family="'Inter', sans-serif" 
+        font-size="16" font-weight="400" fill="rgba(255,255,255,0.6)" text-anchor="end">
+        neadigitra.github.io/Git-Smart
+  </text>
+</svg>
