@@ -10,7 +10,7 @@ class TestFramework {
   }
 
   describe(name, fn) {
-    const suite = { name, tests: [] }
+    const suite = { name, tests: [], beforeEachFns: [], afterEachFns: [] }
     this.suites.push(suite)
     this.currentSuite = suite
     fn()
@@ -18,7 +18,7 @@ class TestFramework {
   }
 
   test(name, fn) {
-    const test = { name, fn, suite: this.currentSuite?.name || 'Global' }
+    const test = { name, fn, suite: this.currentSuite?.name || 'Global', suiteObj: this.currentSuite }
     this.tests.push(test)
     if (this.currentSuite) {
       this.currentSuite.tests.push(test)
@@ -29,12 +29,39 @@ class TestFramework {
     this.test(name, fn)
   }
 
+  beforeEach(fn) {
+    if (this.currentSuite) {
+      this.currentSuite.beforeEachFns.push(fn)
+    }
+  }
+
+  afterEach(fn) {
+    if (this.currentSuite) {
+      this.currentSuite.afterEachFns.push(fn)
+    }
+  }
+
   async run() {
     console.log('🧪 Running Git-Smart Test Suite\n')
     
     for (const test of this.tests) {
       try {
+        // Run beforeEach hooks
+        if (test.suiteObj && test.suiteObj.beforeEachFns) {
+          for (const beforeEachFn of test.suiteObj.beforeEachFns) {
+            await beforeEachFn()
+          }
+        }
+        
         await test.fn()
+        
+        // Run afterEach hooks
+        if (test.suiteObj && test.suiteObj.afterEachFns) {
+          for (const afterEachFn of test.suiteObj.afterEachFns) {
+            await afterEachFn()
+          }
+        }
+        
         this.passed++
         console.log(`✅ ${test.suite}: ${test.name}`)
       } catch (error) {
@@ -168,6 +195,7 @@ function expect(actual) {
 class MockHelper {
   static mockExecSync(returnValue = '', shouldThrow = false) {
     const originalExecSync = require('child_process').execSync
+    const originalSpawnSync = require('child_process').spawnSync
     
     const mock = (command, options) => {
       // Mock specific git commands for testing
@@ -184,7 +212,7 @@ class MockHelper {
           if (shouldThrow) throw new Error('Git command failed')
           return returnValue
         }
-        if (command.includes('git diff --cached')) {
+        if (command.includes('git diff --cached') && !command.includes('--stat')) {
           if (shouldThrow) throw new Error('Git command failed')
           return returnValue
         }
@@ -204,11 +232,49 @@ class MockHelper {
       return returnValue
     }
     
+    // Mock spawnSync for git commit
+    const mockSpawnSync = (command, args, options) => {
+      if (command === 'git' && args && args[0] === 'commit') {
+        if (shouldThrow) {
+          return { 
+            status: 1, 
+            error: new Error('Git command failed'),
+            stderr: 'Mock commit error',
+            stdout: ''
+          }
+        }
+        return { 
+          status: 0, 
+          error: null,
+          stderr: '',
+          stdout: 'Mock commit success'
+        }
+      }
+      
+      // Default mock behavior
+      if (shouldThrow) {
+        return { 
+          status: 1, 
+          error: new Error('Mock error'),
+          stderr: 'Mock error',
+          stdout: ''
+        }
+      }
+      return { 
+        status: 0, 
+        error: null,
+        stderr: '',
+        stdout: returnValue || ''
+      }
+    }
+    
     mock.restore = () => {
       require('child_process').execSync = originalExecSync
+      require('child_process').spawnSync = originalSpawnSync
     }
     
     require('child_process').execSync = mock
+    require('child_process').spawnSync = mockSpawnSync
     return mock
   }
 
@@ -218,12 +284,22 @@ class MockHelper {
     
     for (let i = 0; i < count; i++) {
       commits.push({
-        hash: `abc${i}23${i}`,
+        hash: `abc${i.toString().padStart(3, '0')}`,
         message: `${types[i % types.length]}: sample commit ${i + 1}`
       })
     }
     
     return commits
+  }
+  
+  static createMockGitOutput(type = 'commits') {
+    const outputs = {
+      commits: 'abc123 feat: add authentication\ndef456 fix: resolve login bug\nghi789 docs: update README',
+      stagedFiles: 'M\tsrc/auth.js\nA\tsrc/utils.js\nD\told-file.js',
+      diff: 'diff --git a/src/auth.js b/src/auth.js\nindex 1234567..abcdefg 100644\n--- a/src/auth.js\n+++ b/src/auth.js\n@@ -1,3 +1,6 @@\n function login(user) {\n+  if (!user.email) {\n+    throw new Error(\'Email required\')\n+  }\n   return authenticate(user)\n }',
+      stats: '2 files changed, 5 insertions(+), 1 deletion(-)'
+    }
+    return outputs[type] || ''
   }
 
   static createMockDiff(type = 'feat') {
@@ -315,6 +391,8 @@ const testFramework = new TestFramework()
 global.describe = testFramework.describe.bind(testFramework)
 global.test = testFramework.test.bind(testFramework)
 global.it = testFramework.it.bind(testFramework)
+global.beforeEach = testFramework.beforeEach.bind(testFramework)
+global.afterEach = testFramework.afterEach.bind(testFramework)
 global.expect = expect
 global.MockHelper = MockHelper
 
