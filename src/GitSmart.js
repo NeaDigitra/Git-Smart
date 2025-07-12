@@ -72,12 +72,23 @@ class GitSmart {
     // Verbose logging removed for linting compliance
     const commits = GitUtils.getRecentCommits(50)
     const historyAnalysis = this.historyAnalyzer.analyzeCommitHistory(commits)
-    const styleGuide = this.historyAnalyzer.generateStyleGuide(historyAnalysis)
+    
+    // v1.1.0: Use enhanced style guide generation
+    const styleGuide = this.options.enhanced 
+      ? this.historyAnalyzer.generateEnhancedStyleGuide(historyAnalysis)
+      : this.historyAnalyzer.generateStyleGuide(historyAnalysis)
+    
     // Verbose logging removed for linting compliance
     // Add the adaptation method
     styleGuide.adaptMessageToStyle = (message, guide) => {
       return this.historyAnalyzer.adaptMessageToStyle(message, guide)
     }
+    
+    // v1.1.0: Store enhanced analysis for potential CLI options
+    if (this.options.enhanced) {
+      styleGuide.enhancedAnalysis = historyAnalysis
+    }
+    
     return styleGuide
   }
 

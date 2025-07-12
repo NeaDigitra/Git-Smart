@@ -5,6 +5,30 @@ All notable changes to Git-Smart will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-07-12
+
+### Added
+- **Enhanced Pattern Recognition**: Advanced vocabulary and scope analysis with 4 distinct vocabulary categories (formal, casual, technical, business)
+- **Deep Commit Analysis**: New `--analyze` option provides detailed breakdown of commit history patterns and quality metrics
+- **Style Profiling**: New `--profile` option displays personalized commit style analysis with recommendations
+- **Advanced Confidence Scoring**: Multi-factor confidence calculation including consistency, conventional adherence, scope usage, and message quality
+- **Type Frequency Analysis**: Tracks and analyzes most commonly used commit types with usage statistics
+- **Scope Preference Detection**: Identifies preferred scopes and categorizes them by domain (frontend, backend, devops, testing)
+- **Team Recommendations**: Intelligent suggestions for improving commit message consistency and quality
+- **Enhanced CLI Options**: New flags `-e/--enhanced`, `-a/--analyze`, `-p/--profile` for advanced features
+
+### Enhanced
+- **HistoryAnalyzer**: Completely upgraded with new methods for vocabulary analysis, scope preferences, and confidence calculation
+- **Style Guide Generation**: Enhanced with vocabulary style detection and team preference analysis
+- **CLI Interface**: Updated help system showcasing v1.1.0 features with comprehensive examples
+- **Analysis Depth**: Now analyzes up to 100 commits for better pattern recognition (increased from 50)
+
+### Technical Improvements
+- **New Analysis Methods**: `analyzeVocabulary()`, `analyzeScopePreferences()`, `analyzeTypeFrequency()`, `calculateConfidenceFactors()`
+- **Enhanced Style Guides**: `generateEnhancedStyleGuide()` with vocabulary style and confidence scoring
+- **Backwards Compatibility**: All existing functionality preserved, new features opt-in
+- **Pattern Libraries**: Comprehensive vocabulary and scope pattern libraries for intelligent categorization
+
 ## [1.0.1] - 2025-07-12
 
 ### Fixed
