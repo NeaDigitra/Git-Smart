@@ -4,7 +4,7 @@ class MessageGenerator {
       // Core types
       feat: [
         'add {description}',
-        'implement {description}', 
+        'implement {description}',
         'introduce {description}',
         'create {description}'
       ],
@@ -115,7 +115,7 @@ class MessageGenerator {
     this.scopes = {
       // Core functionality
       api: 'api',
-      ui: 'ui', 
+      ui: 'ui',
       auth: 'auth',
       database: 'database',
       db: 'database',
@@ -124,7 +124,7 @@ class MessageGenerator {
       tests: 'test',
       docs: 'docs',
       utils: 'utils',
-      
+
       // Architecture patterns
       service: 'service',
       controller: 'controller',
@@ -225,8 +225,8 @@ class MessageGenerator {
     // Ensure lowercase start
     message = message.charAt(0).toLowerCase() + message.slice(1)
     // Apply style preferences
-    return styleGuide.adaptMessageToStyle ? 
-      styleGuide.adaptMessageToStyle(message, styleGuide) : 
+    return styleGuide.adaptMessageToStyle ?
+      styleGuide.adaptMessageToStyle(message, styleGuide) :
       this.applyBasicStyle(message, styleGuide)
   }
 
@@ -268,8 +268,8 @@ class MessageGenerator {
     // Function/class based description
     if (codeChanges.newFunctions.length > 0) {
       const funcNames = codeChanges.newFunctions.slice(0, 2)
-      return funcNames.length === 1 ? 
-        `${funcNames[0]} function` : 
+      return funcNames.length === 1 ?
+        `${funcNames[0]} function` :
         `${funcNames[0]} and other functions`
     }
     if (codeChanges.newClasses.length > 0) {
@@ -278,8 +278,8 @@ class MessageGenerator {
     // File based description
     if (fileChanges.added.length > 0) {
       const fileName = this.getReadableFileName(fileChanges.added[0])
-      return fileChanges.added.length === 1 ? 
-        fileName : 
+      return fileChanges.added.length === 1 ?
+        fileName :
         `${fileName} and ${fileChanges.added.length - 1} other files`
     }
     // Category based description
@@ -366,7 +366,7 @@ class MessageGenerator {
       if (path.includes('form')) return 'ui'
       if (path.includes('modal')) return 'ui'
       if (path.includes('button')) return 'ui'
-      
+
       // Backend Architecture
       if (path.includes('service')) return 'service'
       if (path.includes('controller')) return 'controller'
@@ -374,20 +374,20 @@ class MessageGenerator {
       if (path.includes('repository')) return 'data'
       if (path.includes('entity')) return 'model'
       if (path.includes('dto')) return 'model'
-      
+
       // API & Routes
       if (path.includes('route')) return 'api'
       if (path.includes('endpoint')) return 'api'
       if (path.includes('middleware')) return 'api'
       if (path.includes('handler')) return 'api'
-      
+
       // Database
       if (path.includes('migration')) return 'database'
       if (path.includes('schema')) return 'database'
       if (path.includes('seed')) return 'database'
       if (path.includes('query')) return 'database'
       if (path.includes('db')) return 'database'
-      
+
       // Configuration
       if (path.includes('config')) return 'config'
       if (path.includes('setting')) return 'config'
@@ -396,7 +396,7 @@ class MessageGenerator {
       if (path.includes('webpack')) return 'build'
       if (path.includes('babel')) return 'build'
       if (path.includes('tsconfig')) return 'config'
-      
+
       // CI/CD & Build
       if (path.includes('github')) return 'ci'
       if (path.includes('gitlab')) return 'ci'
@@ -404,47 +404,47 @@ class MessageGenerator {
       if (path.includes('workflow')) return 'ci'
       if (path.includes('pipeline')) return 'ci'
       if (path.includes('deploy')) return 'deploy'
-      
+
       // Utils & Helpers
       if (path.includes('util')) return 'utils'
       if (path.includes('helper')) return 'utils'
       if (path.includes('lib')) return 'utils'
       if (path.includes('common')) return 'utils'
-      
+
       // Monitoring & Logging
       if (path.includes('log')) return 'logging'
       if (path.includes('monitor')) return 'monitoring'
       if (path.includes('metric')) return 'monitoring'
       if (path.includes('analytics')) return 'analytics'
-      
+
       // Security
       if (path.includes('security')) return 'security'
       if (path.includes('crypto')) return 'security'
       if (path.includes('encrypt')) return 'security'
       if (path.includes('permission')) return 'security'
       if (path.includes('role')) return 'security'
-      
+
       // Performance
       if (path.includes('cache')) return 'performance'
       if (path.includes('optimize')) return 'performance'
       if (path.includes('perf')) return 'performance'
-      
+
       // Testing
       if (path.includes('spec')) return 'test'
       if (path.includes('mock')) return 'test'
       if (path.includes('fixture')) return 'test'
-      
+
       // Localization
       if (path.includes('i18n')) return 'localization'
       if (path.includes('locale')) return 'localization'
       if (path.includes('translation')) return 'localization'
-      
+
       // Email & Notifications
       if (path.includes('email')) return 'notification'
       if (path.includes('mail')) return 'notification'
       if (path.includes('notification')) return 'notification'
       if (path.includes('alert')) return 'notification'
-      
+
       // Payment & E-commerce
       if (path.includes('payment')) return 'payment'
       if (path.includes('billing')) return 'payment'
@@ -452,11 +452,11 @@ class MessageGenerator {
       if (path.includes('cart')) return 'cart'
       if (path.includes('product')) return 'product'
     }
-    
+
     // File extension based actions
     const extensions = [...fileChanges.added, ...fileChanges.modified]
       .map(path => path.split('.').pop())
-    
+
     if (extensions.some(ext => ['css', 'scss', 'sass', 'less', 'styl'].includes(ext))) {
       return 'style'
     }
@@ -479,16 +479,16 @@ class MessageGenerator {
   getAlternativeChangeType(analysis) {
     const { fileChanges, codeChanges } = analysis
     // If primary wasn't feat, try feat
-    if (analysis.changeType !== 'feat' && 
+    if (analysis.changeType !== 'feat' &&
         (codeChanges.newFunctions.length > 0 || fileChanges.added.length > 0)) {
       return 'feat'
     }
     // If primary wasn't fix, try fix
-    if (analysis.changeType !== 'fix' && 
+    if (analysis.changeType !== 'fix' &&
         codeChanges.keywords.some(k => /fix|bug|error|resolve|patch/i.test(k))) {
       return 'fix'
     }
-    // If primary wasn't refactor, try refactor  
+    // If primary wasn't refactor, try refactor
     if (analysis.changeType !== 'refactor' && fileChanges.modified.length > 2) {
       return 'refactor'
     }
@@ -504,13 +504,13 @@ class MessageGenerator {
     }
     // Try build if build-related
     if (analysis.changeType !== 'build' &&
-        fileChanges.added.concat(fileChanges.modified).some(f => 
+        fileChanges.added.concat(fileChanges.modified).some(f =>
           /webpack|babel|rollup|vite|package\.json|tsconfig|build/i.test(f))) {
       return 'build'
     }
     // Try ci if CI-related
     if (analysis.changeType !== 'ci' &&
-        fileChanges.added.concat(fileChanges.modified).some(f => 
+        fileChanges.added.concat(fileChanges.modified).some(f =>
           /\.github|gitlab-ci|jenkins|workflow|pipeline/i.test(f))) {
       return 'ci'
     }
@@ -543,38 +543,38 @@ class MessageGenerator {
       user: 'user management',
       admin: 'admin functionality',
       security: 'security measures',
-      
+
       // Frontend
       component: 'UI components',
       view: 'view templates',
       layout: 'page layouts',
       style: 'styling',
-      
+
       // Backend
       database: 'database operations',
       migration: 'database migrations',
       schema: 'database schema',
       query: 'database queries',
-      
+
       // DevOps
       build: 'build system',
       ci: 'CI/CD pipeline',
       deploy: 'deployment',
       docker: 'containerization',
-      
+
       // Features
       payment: 'payment system',
       order: 'order management',
       cart: 'shopping cart',
       product: 'product catalog',
       notification: 'notifications',
-      
+
       // Performance & Monitoring
       performance: 'performance optimization',
       monitoring: 'system monitoring',
       logging: 'logging system',
       analytics: 'analytics tracking',
-      
+
       // Localization
       localization: 'internationalization',
       i18n: 'internationalization'

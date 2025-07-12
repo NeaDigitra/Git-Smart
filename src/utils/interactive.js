@@ -24,7 +24,6 @@ class InteractivePrompt {
     console.log(`  ${options.length + 1}. Edit custom message`)
     const answer = await this.askQuestion(`\nSelect (1-${options.length + 1}): `)
     const choice = parseInt(answer)
-    
     if (choice >= 1 && choice <= options.length) {
       return { type: 'selected', index: choice - 1, value: options[choice - 1] }
     } else if (choice === options.length + 1) {

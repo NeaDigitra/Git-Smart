@@ -2,7 +2,7 @@ class DiffAnalyzer {
   constructor() {
     this.fileTypeMap = {
       '.js': 'JavaScript',
-      '.ts': 'TypeScript', 
+      '.ts': 'TypeScript',
       '.jsx': 'React',
       '.tsx': 'React TypeScript',
       '.py': 'Python',
@@ -128,7 +128,7 @@ class DiffAnalyzer {
       return 'docs'
     }
     // Style only changes
-    if (fileChanges.fileTypes.has('CSS') || fileChanges.fileTypes.has('SCSS') || 
+    if (fileChanges.fileTypes.has('CSS') || fileChanges.fileTypes.has('SCSS') ||
         allPaths.every(p => /\.(css|scss|sass|less|styl)$/i.test(p))) {
       return 'style'
     }
@@ -141,7 +141,7 @@ class DiffAnalyzer {
       return 'fix'
     }
     // Refactoring
-    if (codeChanges.keywords.some(k => /refactor|move|rename|restructure|reorganize/i.test(k)) || 
+    if (codeChanges.keywords.some(k => /refactor|move|rename|restructure|reorganize/i.test(k)) ||
         fileChanges.renamed.length > 0) {
       return 'refactor'
     }
@@ -217,27 +217,27 @@ class DiffAnalyzer {
     // Documentation
     if (lowerPath.includes('doc') || lowerPath.includes('readme') || lowerPath.match(/\.(md|rst|txt)$/)) return 'docs'
     // Configuration
-    if (lowerPath.includes('config') || lowerPath.includes('package.json') || 
+    if (lowerPath.includes('config') || lowerPath.includes('package.json') ||
         lowerPath.match(/\.(json|yaml|yml|toml|ini|env)$/)) return 'config'
     // Build & CI
-    if (lowerPath.includes('webpack') || lowerPath.includes('babel') || 
+    if (lowerPath.includes('webpack') || lowerPath.includes('babel') ||
         lowerPath.includes('.github') || lowerPath.includes('dockerfile')) return 'build'
     // Styles
     if (lowerPath.match(/\.(css|scss|sass|less|styl)$/)) return 'style'
     // UI Components
-    if (lowerPath.includes('component') || lowerPath.includes('ui') || 
+    if (lowerPath.includes('component') || lowerPath.includes('ui') ||
         lowerPath.includes('view') || lowerPath.includes('page')) return 'ui'
     // API & Services
-    if (lowerPath.includes('api') || lowerPath.includes('service') || 
+    if (lowerPath.includes('api') || lowerPath.includes('service') ||
         lowerPath.includes('controller') || lowerPath.includes('route')) return 'api'
     // Database
-    if (lowerPath.includes('migration') || lowerPath.includes('schema') || 
+    if (lowerPath.includes('migration') || lowerPath.includes('schema') ||
         lowerPath.includes('model') || lowerPath.match(/\.(sql|db)$/)) return 'database'
     // Security & Auth
-    if (lowerPath.includes('auth') || lowerPath.includes('security') || 
+    if (lowerPath.includes('auth') || lowerPath.includes('security') ||
         lowerPath.includes('permission') || lowerPath.includes('role')) return 'security'
     // Utils & Helpers
-    if (lowerPath.includes('util') || lowerPath.includes('helper') || 
+    if (lowerPath.includes('util') || lowerPath.includes('helper') ||
         lowerPath.includes('lib') || lowerPath.includes('common')) return 'utils'
     return 'code'
   }

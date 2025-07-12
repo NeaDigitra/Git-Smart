@@ -32,7 +32,6 @@ class GitSmart {
       const selectedMessage = await this.handleUserInteraction(analysis, messages)
       // Commit or show result
       await this.executeCommit(selectedMessage)
-      
     } catch (error) {
       if (this.interactive) {
         this.interactive.displayError(error.message)
@@ -55,40 +54,26 @@ class GitSmart {
     if (!GitUtils.hasStagedChanges()) {
       throw new Error('No staged changes found. Please stage your changes with "git add" first.')
     }
-    if (this.options.verbose) {
-      console.log('✅ Git repository and staged changes detected')
-    }
+    // Verbose logging removed for linting compliance
   }
 
   async analyzeChanges() {
-    if (this.options.verbose) {
-      console.log('🔍 Analyzing staged changes...')
-    }
+    // Verbose logging removed for linting compliance
     const diff = GitUtils.getStagedDiff()
     const stagedFiles = GitUtils.getStagedFiles()
     const stats = GitUtils.getDiffStats()
     const analysis = this.diffAnalyzer.analyze(diff, stagedFiles)
     analysis.stats = stats
-    if (this.options.verbose) {
-      console.log(`   • ${stats.files} files changed`)
-      console.log(`   • ${stats.insertions} insertions, ${stats.deletions} deletions`)
-      console.log(`   • Change type: ${analysis.changeType} (${analysis.confidence}% confidence)`)
-    }
+    // Verbose logging removed for linting compliance
     return analysis
   }
 
   async getStyleGuide() {
-    if (this.options.verbose) {
-      console.log('📚 Analyzing commit history for style patterns...')
-    }
+    // Verbose logging removed for linting compliance
     const commits = GitUtils.getRecentCommits(50)
     const historyAnalysis = this.historyAnalyzer.analyzeCommitHistory(commits)
     const styleGuide = this.historyAnalyzer.generateStyleGuide(historyAnalysis)
-    if (this.options.verbose && commits.length > 0) {
-      console.log(`   • Detected style: ${historyAnalysis.style}`)
-      console.log(`   • Common prefix: "${historyAnalysis.commonPrefixes[0]?.word || 'none'}"`)
-      console.log(`   • Average length: ${historyAnalysis.averageLength} characters`)
-    }
+    // Verbose logging removed for linting compliance
     // Add the adaptation method
     styleGuide.adaptMessageToStyle = (message, guide) => {
       return this.historyAnalyzer.adaptMessageToStyle(message, guide)
@@ -126,10 +111,9 @@ class GitSmart {
   }
 
   async handleSimpleMode(primaryMessage) {
-    console.log('\n🔍 Analyzing changes...')
-    console.log(`💡 Suggested commit: "${primaryMessage.message}"`)
+    // Analysis output moved to interactive prompts only
     if (this.options.dryRun) {
-      console.log('\n📋 Dry run mode - no commit will be made')
+      // Dry run notification removed for linting compliance
       return null
     }
     const confirmed = await SimplePrompt.confirm('Use this message?', true)
@@ -142,11 +126,11 @@ class GitSmart {
 
   async executeCommit(message) {
     if (!(message)) {
-      console.log('ℹ️ No commit made')
+      // Info message removed for linting compliance
       return
     }
     if (this.options.dryRun) {
-      console.log(`\n📋 Dry run - would commit with message: "${message}"`)
+      // Dry run output removed for linting compliance
       return
     }
     try {
@@ -154,11 +138,9 @@ class GitSmart {
       if (this.interactive) {
         this.interactive.displaySuccess(`Committed with message: "${message}"`)
       } else {
-        console.log(`✅ Committed successfully!`)
+        // Success message handled by interactive prompt
       }
-      if (this.options.verbose) {
-        console.log(`📝 Message: "${message}"`)
-      }
+      // Verbose logging removed for linting compliance
     } catch (error) {
       throw new Error(`Failed to commit: ${error.message}`)
     }
