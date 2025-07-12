@@ -1,0 +1,44 @@
+# Development files
+tests/
+example-demo.js
+test-auth.js
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Environment
+.env
+.env.local
+.env.test
+
+# Temporary files
+tmp/
+temp/
+
+# Git
+.git/
+.gitignore
+
+# Documentation (keep only essential)
+docs/development/
+CONTRIBUTING.md
+CHANGELOG.md
+
+# Build artifacts
+dist/
+build/

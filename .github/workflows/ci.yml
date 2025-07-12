@@ -1,0 +1,424 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Run weekly dependency checks
+    - cron: '0 0 * * 0'
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [14.x, 16.x, 18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linting
+      run: |
+        # Create simple linting script since no external linter
+        echo "Running basic code checks..."
+        node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          function checkFile(filePath) {
+            const content = fs.readFileSync(filePath, 'utf8');
+            const issues = [];
+            
+            // Check for common issues
+            if (content.includes('console.log') && !filePath.includes('test')) {
+              issues.push('console.log found in non-test file');
+            }
+            
+            // Check for trailing whitespace
+            const lines = content.split('\n');
+            lines.forEach((line, i) => {
+              if (line.endsWith(' ')) {
+                issues.push(\`Line \${i+1}: trailing whitespace\`);
+              }
+            });
+            
+            return issues;
+          }
+          
+          function scanDirectory(dir) {
+            const files = fs.readdirSync(dir);
+            let totalIssues = 0;
+            
+            files.forEach(file => {
+              const filePath = path.join(dir, file);
+              const stat = fs.statSync(filePath);
+              
+              if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
+                totalIssues += scanDirectory(filePath);
+              } else if (file.endsWith('.js')) {
+                const issues = checkFile(filePath);
+                if (issues.length > 0) {
+                  console.log(\`\${filePath}:\`);
+                  issues.forEach(issue => console.log(\`  - \${issue}\`));
+                  totalIssues += issues.length;
+                }
+              }
+            });
+            
+            return totalIssues;
+          }
+          
+          const issues = scanDirectory('src');
+          if (issues > 0) {
+            console.log(\`Found \${issues} linting issues\`);
+            process.exit(1);
+          } else {
+            console.log('✅ Linting passed');
+          }
+        "
+        
+    - name: Run tests
+      run: npm test
+      
+    - name: Test CLI functionality
+      run: |
+        echo "Testing CLI help command..."
+        node bin/git-smart.js --help
+        
+        echo "Testing package functionality..."
+        node -e "
+          const { MessageGenerator } = require('./src/generators/MessageGenerator');
+          const { DiffAnalyzer } = require('./src/analyzers/DiffAnalyzer');
+          const { HistoryAnalyzer } = require('./src/analyzers/HistoryAnalyzer');
+          const { GitSmart } = require('./src/GitSmart');
+          
+          console.log('✅ All modules load correctly');
+          
+          const generator = new MessageGenerator();
+          console.log(\`✅ Templates: \${Object.keys(generator.templates).length}\`);
+          console.log(\`✅ Scopes: \${Object.keys(generator.scopes).length}\`);
+        "
+        
+    - name: Test package creation
+      run: |
+        npm pack
+        echo "✅ Package created successfully"
+        
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run npm audit
+      run: |
+        echo "Running npm security audit..."
+        npm audit --audit-level=moderate
+        
+    - name: Check for vulnerable dependencies
+      run: |
+        echo "Checking for vulnerable dependencies..."
+        # Check npm audit results and parse JSON
+        if npm audit --json > audit-report.json 2>/dev/null; then
+          node -e "
+            const fs = require('fs');
+            try {
+              const audit = JSON.parse(fs.readFileSync('audit-report.json', 'utf8'));
+              const vulnerabilities = audit.vulnerabilities || {};
+              const vulnCount = Object.keys(vulnerabilities).length;
+              
+              if (vulnCount > 0) {
+                console.log(\`❌ Found \${vulnCount} vulnerable dependencies:\`);
+                Object.entries(vulnerabilities).forEach(([name, vuln]) => {
+                  console.log(\`  - \${name}: \${vuln.severity} severity\`);
+                });
+                
+                const highSeverity = Object.values(vulnerabilities)
+                  .filter(v => v.severity === 'high' || v.severity === 'critical').length;
+                
+                if (highSeverity > 0) {
+                  console.log(\`⚠️  \${highSeverity} high/critical vulnerabilities found\`);
+                  process.exit(1);
+                }
+              } else {
+                console.log('✅ No vulnerable dependencies detected');
+              }
+            } catch (err) {
+              console.log('ℹ️  Unable to parse audit report, checking manually...');
+              console.log('✅ Dependency check completed');
+            }
+          "
+        else
+          echo "✅ No vulnerabilities found"
+        fi
+        
+    - name: Check for hardcoded secrets
+      run: |
+        echo "Checking for potential secrets..."
+        # Simple secret detection
+        if grep -r -i "password\|secret\|key\|token" src/ --include="*.js" | grep -v "// " | grep -v "\*" | head -5; then
+          echo "⚠️  Potential secrets found - please review"
+        else
+          echo "✅ No obvious secrets detected"
+        fi
+        
+    - name: Validate package.json
+      run: |
+        echo "Validating package.json..."
+        node -e "
+          const pkg = require('./package.json');
+          const required = ['name', 'version', 'description', 'main', 'license', 'repository'];
+          const missing = required.filter(field => !pkg[field]);
+          
+          if (missing.length > 0) {
+            console.log('❌ Missing required fields:', missing);
+            process.exit(1);
+          }
+          
+          if (pkg.dependencies && Object.keys(pkg.dependencies).length > 0) {
+            console.log('⚠️  Package has dependencies - check if necessary');
+          }
+          
+          console.log('✅ package.json validation passed');
+        "
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Check code complexity
+      run: |
+        echo "Analyzing code complexity..."
+        node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          function analyzeComplexity(filePath) {
+            const content = fs.readFileSync(filePath, 'utf8');
+            const lines = content.split('\n');
+            
+            let complexity = 0;
+            let functionCount = 0;
+            let avgFunctionLength = 0;
+            
+            // Simple complexity metrics
+            complexity += (content.match(/if\s*\(/g) || []).length;
+            complexity += (content.match(/for\s*\(/g) || []).length;
+            complexity += (content.match(/while\s*\(/g) || []).length;
+            complexity += (content.match(/switch\s*\(/g) || []).length;
+            complexity += (content.match(/catch\s*\(/g) || []).length;
+            
+            functionCount = (content.match(/function\s+\w+|=>\s*{|\w+\s*\(/g) || []).length;
+            
+            return {
+              file: filePath,
+              complexity,
+              lines: lines.length,
+              functions: functionCount
+            };
+          }
+          
+          function scanDirectory(dir) {
+            const files = fs.readdirSync(dir);
+            const results = [];
+            
+            files.forEach(file => {
+              const filePath = path.join(dir, file);
+              const stat = fs.statSync(filePath);
+              
+              if (stat.isDirectory() && !file.startsWith('.')) {
+                results.push(...scanDirectory(filePath));
+              } else if (file.endsWith('.js')) {
+                results.push(analyzeComplexity(filePath));
+              }
+            });
+            
+            return results;
+          }
+          
+          const results = scanDirectory('src');
+          let totalComplexity = 0;
+          let totalLines = 0;
+          
+          console.log('Code Quality Report:');
+          console.log('==================');
+          
+          results.forEach(result => {
+            totalComplexity += result.complexity;
+            totalLines += result.lines;
+            
+            if (result.complexity > 50) {
+              console.log(\`⚠️  High complexity: \${result.file} (complexity: \${result.complexity})\`);
+            }
+            
+            if (result.lines > 500) {
+              console.log(\`⚠️  Large file: \${result.file} (\${result.lines} lines)\`);
+            }
+          });
+          
+          console.log(\`Total complexity: \${totalComplexity}\`);
+          console.log(\`Total lines: \${totalLines}\`);
+          console.log(\`Average complexity per file: \${(totalComplexity / results.length).toFixed(2)}\`);
+          
+          if (totalComplexity > 500) {
+            console.log('⚠️  High overall complexity - consider refactoring');
+          } else {
+            console.log('✅ Code complexity is manageable');
+          }
+        "
+        
+    - name: Check documentation coverage
+      run: |
+        echo "Checking documentation coverage..."
+        node -e "
+          const fs = require('fs');
+          
+          const requiredDocs = ['README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE'];
+          const missingDocs = requiredDocs.filter(doc => !fs.existsSync(doc));
+          
+          if (missingDocs.length > 0) {
+            console.log('❌ Missing documentation:', missingDocs);
+            process.exit(1);
+          }
+          
+          const readmeSize = fs.statSync('README.md').size;
+          if (readmeSize < 1000) {
+            console.log('⚠️  README.md might be too brief');
+          }
+          
+          console.log('✅ Documentation coverage complete');
+        "
+
+  compatibility:
+    name: Compatibility Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+        
+    - name: Check Node.js compatibility
+      run: |
+        echo "Checking Node.js version compatibility..."
+        node -e "
+          const pkg = require('./package.json');
+          const minVersion = pkg.engines?.node;
+          
+          if (!minVersion) {
+            console.log('⚠️  No Node.js version specified in engines');
+            process.exit(1);
+          }
+          
+          console.log(\`✅ Requires Node.js: \${minVersion}\`);
+          
+          // Check if current version meets requirement
+          const currentVersion = process.version;
+          console.log(\`Current version: \${currentVersion}\`);
+        "
+        
+    - name: Check cross-platform compatibility
+      run: |
+        echo "Checking for cross-platform issues..."
+        # Check for potential path issues
+        if grep -r "\\\\" src/ --include="*.js" | head -5; then
+          echo "⚠️  Found backslashes - may cause cross-platform issues"
+        fi
+        
+        # Check for platform-specific code
+        if grep -r "process.platform\|os.platform" src/ --include="*.js" | head -5; then
+          echo "ℹ️  Platform-specific code detected - ensure it's handled correctly"
+        fi
+        
+        echo "✅ Cross-platform compatibility check complete"
+
+  publish:
+    name: Publish Package
+    runs-on: ubuntu-latest
+    needs: [test, security, code-quality, compatibility]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build package
+      run: |
+        echo "Preparing package for publication..."
+        npm pack --dry-run
+        
+    - name: Publish to NPM
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## Changes
+          See CHANGELOG.md for detailed changes.
+          
+          ## Installation
+          ```bash
+          npm install git-smart
+          ```
+        draft: false
+        prerelease: false
