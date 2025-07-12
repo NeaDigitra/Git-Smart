@@ -1,4 +1,4 @@
-const { execSync } = require('child_process')
+const { execSync, spawnSync } = require('child_process')
 
 class GitUtils {
   static isGitRepository() {
@@ -62,8 +62,31 @@ class GitUtils {
   }
 
   static commit(message) {
+    // Input validation
+    if (!message || typeof message !== 'string') {
+      throw new Error('Commit message must be a non-empty string')
+    }
+    
+    // Sanitize message length (git has practical limits)
+    if (message.length > 72 * 50) { // ~50 lines of 72 chars
+      throw new Error('Commit message too long (max 3600 characters)')
+    }
+    
     try {
-      execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { encoding: 'utf8' })
+      // Use spawnSync with argument array to prevent command injection
+      const result = spawnSync('git', ['commit', '-m', message], { 
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe']
+      })
+      
+      if (result.error) {
+        throw new Error('Git command failed: ' + result.error.message)
+      }
+      
+      if (result.status !== 0) {
+        throw new Error('Git commit failed: ' + (result.stderr || 'Unknown error'))
+      }
+      
       return true
     } catch (error) {
       throw new Error('Failed to commit: ' + error.message)
