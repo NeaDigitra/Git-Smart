@@ -3,7 +3,10 @@ const { execSync, spawnSync } = require('child_process')
 class GitUtils {
   static isGitRepository() {
     try {
-      execSync('git rev-parse --git-dir', { stdio: 'ignore' })
+      execSync('git rev-parse --git-dir', { 
+        stdio: 'ignore',
+        timeout: 5000 // 5 second timeout for simple check
+      })
       return true
     } catch {
       return false
@@ -12,7 +15,10 @@ class GitUtils {
 
   static hasStagedChanges() {
     try {
-      const output = execSync('git diff --cached --name-only', { encoding: 'utf8' })
+      const output = execSync('git diff --cached --name-only', { 
+        encoding: 'utf8',
+        timeout: 10000 // 10 second timeout
+      })
       return output.trim().length > 0
     } catch {
       return false
@@ -21,42 +27,86 @@ class GitUtils {
 
   static getStagedDiff() {
     try {
-      return execSync('git diff --cached', { encoding: 'utf8' })
+      return execSync('git diff --cached', { 
+        encoding: 'utf8',
+        timeout: 30000 // 30 second timeout
+      })
     } catch (error) {
+      if (error.code === 'ETIMEDOUT') {
+        throw new Error('Git diff command timed out - repository may be too large')
+      }
       throw new Error('Failed to get staged changes: ' + error.message)
     }
   }
 
   static getStagedFiles() {
     try {
-      const output = execSync('git diff --cached --name-status', { encoding: 'utf8' })
+      const output = execSync('git diff --cached --name-status', { 
+        encoding: 'utf8',
+        timeout: 30000
+      })
+      
+      if (!output || !output.trim()) {
+        return []
+      }
+      
       return output.trim().split('\n')
         .filter(line => line.trim())
         .map(line => {
-          const [status, ...pathParts] = line.split('\t')
+          const parts = line.split('\t')
+          if (parts.length < 2) {
+            throw new Error(`Invalid git status line: ${line}`)
+          }
+          const [status, ...pathParts] = parts
           return {
             status: status.trim(),
             path: pathParts.join('\t').trim()
           }
         })
     } catch (error) {
+      if (error.code === 'ETIMEDOUT') {
+        throw new Error('Git status command timed out - repository may be too large')
+      }
       throw new Error('Failed to get staged files: ' + error.message)
     }
   }
 
   static getRecentCommits(limit = 50) {
+    // Input validation
+    if (!Number.isInteger(limit) || limit < 1 || limit > 1000) {
+      throw new Error('Commit limit must be an integer between 1 and 1000')
+    }
+    
     try {
-      const output = execSync(`git log --oneline -${limit}`, { encoding: 'utf8' })
+      const output = execSync(`git log --oneline -${limit}`, { 
+        encoding: 'utf8',
+        timeout: 30000
+      })
+      
+      if (!output || !output.trim()) {
+        return []
+      }
+      
       return output.trim().split('\n')
         .filter(line => line.trim())
         .map(line => {
           const spaceIndex = line.indexOf(' ')
+          if (spaceIndex === -1) {
+            // Handle commit with no message (shouldn't happen but be safe)
+            return {
+              hash: line.trim(),
+              message: ''
+            }
+          }
           return {
             hash: line.substring(0, spaceIndex),
             message: line.substring(spaceIndex + 1)
           }
         })
-    } catch {
+    } catch (error) {
+      if (error.code === 'ETIMEDOUT') {
+        console.warn('Git log command timed out, using empty commit history')
+      }
       return []
     }
   }
@@ -95,9 +145,18 @@ class GitUtils {
 
   static getDiffStats() {
     try {
-      const output = execSync('git diff --cached --stat', { encoding: 'utf8' })
+      const output = execSync('git diff --cached --stat', { 
+        encoding: 'utf8',
+        timeout: 30000
+      })
+      
+      if (!output || !output.trim()) {
+        return { files: 0, insertions: 0, deletions: 0 }
+      }
+      
       const lines = output.trim().split('\n')
       const statsLine = lines[lines.length - 1]
+      
       if (statsLine && statsLine.includes('changed')) {
         const matches = statsLine.match(/(\d+) files? changed(?:, (\d+) insertions?\(\+\))?(?:, (\d+) deletions?\(-\))?/)
         if (matches) {
@@ -108,8 +167,12 @@ class GitUtils {
           }
         }
       }
+      
       return { files: 0, insertions: 0, deletions: 0 }
-    } catch {
+    } catch (error) {
+      if (error.code === 'ETIMEDOUT') {
+        console.warn('Git stat command timed out, returning zero stats')
+      }
       return { files: 0, insertions: 0, deletions: 0 }
     }
   }

@@ -202,16 +202,41 @@ class MessageGenerator {
   }
 
   generateMessages(analysis, styleGuide, options = {}) {
-    const messages = []
-    // Primary message based on analysis
-    const primary = this.generatePrimaryMessage(analysis, styleGuide)
-    messages.push({ message: primary, confidence: analysis.confidence, type: 'primary' })
-    // Alternative messages
-    if (options.includeAlternatives) {
-      const alternatives = this.generateAlternatives(analysis, styleGuide)
-      alternatives.forEach(alt => messages.push(alt))
+    // Input validation
+    if (!analysis || typeof analysis !== 'object') {
+      throw new Error('Analysis object is required')
     }
-    return messages
+    if (!styleGuide || typeof styleGuide !== 'object') {
+      throw new Error('Style guide object is required')
+    }
+    if (!analysis.changeType) {
+      throw new Error('Analysis must include changeType')
+    }
+    
+    const messages = []
+    
+    try {
+      // Primary message based on analysis
+      const primary = this.generatePrimaryMessage(analysis, styleGuide)
+      
+      if (!primary || typeof primary !== 'string' || primary.trim().length === 0) {
+        throw new Error('Failed to generate primary commit message')
+      }
+      
+      messages.push({ message: primary, confidence: analysis.confidence || 50, type: 'primary' })
+      
+      // Alternative messages
+      if (options.includeAlternatives) {
+        const alternatives = this.generateAlternatives(analysis, styleGuide)
+        if (Array.isArray(alternatives)) {
+          alternatives.forEach(alt => messages.push(alt))
+        }
+      }
+      
+      return messages
+    } catch (error) {
+      throw new Error(`Failed to generate commit messages: ${error.message}`)
+    }
   }
 
   generatePrimaryMessage(analysis, styleGuide) {
