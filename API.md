@@ -7,7 +7,7 @@
 Main class for generating commit messages.
 
 ```javascript
-const { GitSmart } = require('git-smart')
+const { GitSmart } = require('@neabyte/git-smart')
 
 const gitSmart = new GitSmart({
   interactive: false,
@@ -29,7 +29,7 @@ await gitSmart.run()
 Generates commit messages based on analysis.
 
 ```javascript
-const { MessageGenerator } = require('git-smart/src/generators/MessageGenerator')
+const { MessageGenerator } = require('@neabyte/git-smart/src/generators/MessageGenerator')
 
 const generator = new MessageGenerator()
 const messages = generator.generateMessages(analysis, styleGuide, options)
@@ -49,7 +49,7 @@ Categories include: api, ui, auth, database, config, security, build, ci, deploy
 Analyzes git diff and staged files.
 
 ```javascript
-const { DiffAnalyzer } = require('git-smart/src/analyzers/DiffAnalyzer')
+const { DiffAnalyzer } = require('@neabyte/git-smart/src/analyzers/DiffAnalyzer')
 
 const analyzer = new DiffAnalyzer()
 const analysis = analyzer.analyze(diff, stagedFiles)
@@ -60,7 +60,7 @@ const analysis = analyzer.analyze(diff, stagedFiles)
 Analyzes commit history for style patterns.
 
 ```javascript
-const { HistoryAnalyzer } = require('git-smart/src/analyzers/HistoryAnalyzer')
+const { HistoryAnalyzer } = require('@neabyte/git-smart/src/analyzers/HistoryAnalyzer')
 
 const historyAnalyzer = new HistoryAnalyzer()
 const styleGuide = historyAnalyzer.generateStyleGuide(commits)
@@ -68,6 +68,24 @@ const styleGuide = historyAnalyzer.generateStyleGuide(commits)
 
 ## CLI Usage
 
+```bash
+# Basic usage
+npx @neabyte/git-smart
+
+# Interactive mode
+npx @neabyte/git-smart --interactive
+
+# Dry run
+npx @neabyte/git-smart --dry-run
+
+# Verbose output
+npx @neabyte/git-smart --verbose
+
+# Help
+npx @neabyte/git-smart --help
+```
+
+Or if installed globally:
 ```bash
 # Basic usage
 git-smart

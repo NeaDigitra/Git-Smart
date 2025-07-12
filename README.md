@@ -14,12 +14,12 @@ AI-powered git commit message generator that works completely offline. Analyzes 
 ## Installation
 
 ```bash
-npm install -g git-smart
+npm install -g @neabyte/git-smart
 ```
 
 Or use directly:
 ```bash
-npx git-smart
+npx @neabyte/git-smart
 ```
 
 ## Usage
@@ -27,7 +27,7 @@ npx git-smart
 ### Basic Usage
 ```bash
 git add .
-git-smart
+npx @neabyte/git-smart
 ```
 
 Example output:
@@ -40,7 +40,7 @@ Use this message? (Y/n): y
 
 ### Interactive Mode
 ```bash
-git-smart --interactive
+npx @neabyte/git-smart --interactive
 ```
 
 Example output:
@@ -64,13 +64,18 @@ Choose (1-4): 1
 ### Options
 
 ```bash
-git-smart [options]
+npx @neabyte/git-smart [options]
 
 Options:
   -i, --interactive    Interactive mode with multiple suggestions
   -v, --verbose        Show detailed analysis information
   -d, --dry-run        Show suggested message without committing
   -h, --help          Show help message
+```
+
+Or if installed globally:
+```bash
+git-smart [options]
 ```
 
 ## Commit Format
@@ -196,7 +201,7 @@ init(project): setup initial project structure
 ### Adding Authentication
 ```bash
 $ git add src/auth.js src/login.js
-$ git-smart
+$ npx @neabyte/git-smart
 
 🔍 Analyzing changes...
 💡 Suggested commit: "feat(auth): implement user authentication system"
@@ -205,7 +210,7 @@ $ git-smart
 ### Bug Fix
 ```bash
 $ git add src/api/users.js
-$ git-smart
+$ npx @neabyte/git-smart
 
 🔍 Analyzing changes...
 💡 Suggested commit: "fix(api): resolve null response handling"
@@ -214,7 +219,7 @@ $ git-smart
 ### Documentation Update
 ```bash
 $ git add README.md docs/
-$ git-smart
+$ npx @neabyte/git-smart
 
 🔍 Analyzing changes...
 💡 Suggested commit: "docs(readme): update API documentation"
@@ -223,7 +228,7 @@ $ git-smart
 ### Test Addition
 ```bash
 $ git add tests/auth.test.js
-$ git-smart
+$ npx @neabyte/git-smart
 
 🔍 Analyzing changes...
 💡 Suggested commit: "test(auth): add authentication test coverage"
@@ -233,7 +238,7 @@ $ git-smart
 
 1. Fork the repository at [https://github.com/NeaDigitra/Git-Smart](https://github.com/NeaDigitra/Git-Smart)
 2. Create your feature branch: `git checkout -b feat/new-feature`
-3. Commit your changes: `git-smart`
+3. Commit your changes: `npx @neabyte/git-smart`
 4. Push to the branch: `git push origin feat/new-feature`
 5. Submit a pull request
 
