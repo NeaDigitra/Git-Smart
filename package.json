@@ -1,6 +1,6 @@
 {
   "name": "@neabyte/git-smart",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Intelligent git commit message generator with 18 commit types and 70+ actions. Analyzes code changes, learns from project history, and generates conventional commits offline. Zero dependencies, zero configuration.",
   "main": "src/GitSmart.js",
   "bin": {
