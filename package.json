@@ -1,5 +1,5 @@
 {
-  "name": "git-smart",
+  "name": "@neabyte/git-smart",
   "version": "1.0.0",
   "description": "Intelligent git commit message generator with 18 commit types and 70+ actions. Analyzes code changes, learns from project history, and generates conventional commits offline. Zero dependencies, zero configuration.",
   "main": "src/GitSmart.js",
@@ -17,8 +17,7 @@
     "test:unit": "node tests/unit/runner.js",
     "test:integration": "node tests/integration/runner.js",
     "test:watch": "node tests/runner.js --watch",
-    "start": "node bin/git-smart.js",
-    "prepublishOnly": "npm test"
+    "start": "node bin/git-smart.js"
   },
   "keywords": [
     "git",
@@ -46,7 +45,7 @@
     "url": "https://github.com/NeaDigitra/Git-Smart/issues"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   },
   "os": [
     "darwin",
